@@ -21,44 +21,29 @@ app.get("/", function (req, res) {
 
 // your first API endpoint... 
 app.get("/api/:date", function (req, res) {
-  var datestring = req.params.date;
-  if(datestring.includes("-")){
-    var datearr = datestring.split("-");
-    for(let i=0;i<datearr.length;i++){
-      datearr[i] = parseInt(datearr[i]);
-    }
-    const utc = new Date(datearr[0],datearr[1],datearr[2]).toUTCString();
-    const unixTimestamp = Math.floor(new Date(datestring+" 00:00:00.000").getTime()/1000);
-    res.json({"unix":unixTimestamp,"utc":utc});
+  let date = req.params.date;
+  var dateobj,unix,utcdate;
+  let isUnix = /^\d+$/.test(date);
+  if(!date){
+    dateobj = new Date();
   }
-  else{
-        var dt = parseInt(datestring);
-        if(isNaN(dt)){
-          res.json({ error : "Invalid Date" })
-          
-        }
-        else{
-          const date = new Date(dt*1000);
-          const dayOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][date.getUTCDay()];
-          const day = date.getUTCDate();
-          const month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][date.getUTCMonth()];
-          const year = date.getUTCFullYear();
-          const hours = date.getUTCHours().toString().padStart(2, '0');
-          const minutes = date.getUTCMinutes().toString().padStart(2, '0');
-          const seconds = date.getUTCSeconds().toString().padStart(2, '0');
-
-          // Create the desired date string
-          const formattedDate = `${dayOfWeek}, ${day} ${month} ${year} ${hours}:${minutes}:${seconds} GMT`;
-
-          res.json({date:dt,utc:formattedDate});
-        }
+  else if(date && isUnix){
+    unix = parseInt(date);
+    dateobj = new Date(unixDate);
   }
+  else if (date && !isUnix) {
+    dateobj = new Date(date);
+  }
+  if (dateobj.toString() === "Invalid Date") {
+    res.json({ error: "Invalid Date" });
+    return;
+  }
+
+  unix = dateobj.getTime();
+  utc = dateobj.toUTCString();
+  res.json({ unix: unix, utc: utc });
 });
-app.get("/api",function(req,res){
-  const date = new Date();
-  const unixTimestamp = Math.floor(new Date(date.getFullYear()+date.getMonth()+date.getDate()+" 00:00:00.000").getTime()/1000);
-  res.json({"unix":unixTimestamp,"utc":new Date().toUTCString()});
-})
+
 
 
 // listen for requests :)
